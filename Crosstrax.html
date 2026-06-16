@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crosstrax Entertainment™</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="assets/image-slot.js"></script>
+<style>
+  :root{
+    --black:#080808;
+    --ink:#0d0c0b;
+    --white:#f4f1ea;
+    --muted:#8c8579;
+    --red:#8B1A1A;
+    --gold:#a8916f;
+    --line:rgba(244,241,234,0.10);
+    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--black);
+    color:var(--white);
+    font-family:"Cormorant Garamond",Georgia,serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  ::selection{background:rgba(139,26,26,0.55);color:#fff;}
+
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    overflow:hidden;
+    padding:8vh 24px;
+  }
+  .hero__bg{
+    position:absolute;
+    inset:0;
+    background-image:url("assets/poster.png");
+    background-size:cover;
+    background-position:center 38%;
+    opacity:0.62;
+    transform:scale(1.04);
+    will-change:transform;
+  }
+  /* darkening + vignette so the centred mark reads clean over the poster */
+  .hero__shade{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(120% 90% at 50% 42%, rgba(8,8,8,0) 0%, rgba(8,8,8,0.35) 55%, rgba(8,8,8,0.85) 100%),
+      linear-gradient(180deg, rgba(8,8,8,0.75) 0%, rgba(8,8,8,0.25) 22%, rgba(8,8,8,0.30) 60%, rgba(8,8,8,0.92) 100%);
+  }
+  .hero__grain{position:absolute;inset:0;background-image:var(--grain);background-size:160px;opacity:0.05;mix-blend-mode:soft-light;pointer-events:none;}
+  .hero__inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+  @media (prefers-reduced-motion:no-preference){
+    .hero__inner{animation:rise 1.4s ease both;}
+    @keyframes rise{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+  }
+  /* roster card stagger — initial hidden state, JS reveals via IntersectionObserver */
+  .card{opacity:0;transform:translateY(18px);}
+
+  .hero__kicker{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;letter-spacing:0.5em;text-transform:uppercase;
+    color:rgba(244,241,234,0.55);
+    margin-bottom:30px;padding-left:0.5em;
+  }
+  .hero__logo{width:min(300px,58vw);height:auto;filter:drop-shadow(0 8px 40px rgba(0,0,0,0.7));}
+  .hero__rule{width:1px;height:54px;background:linear-gradient(var(--gold),transparent);margin:30px 0 26px;opacity:0.7;}
+  .hero__tag{
+    font-size:clamp(20px,2.6vw,30px);
+    font-weight:500;font-style:italic;
+    letter-spacing:0.01em;
+    color:var(--white);
+    max-width:min(86vw,30ch);line-height:1.4;
+    text-wrap:balance;
+  }
+  .hero__scroll{
+    position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:0.42em;
+    text-transform:uppercase;color:rgba(244,241,234,0.4);
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  .hero__scroll::after{content:"";width:1px;height:34px;background:linear-gradient(rgba(244,241,234,0.5),transparent);animation:pulse 2.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.25;transform:scaleY(0.6);}50%{opacity:0.9;transform:scaleY(1);}}
+
+  /* ============ LABEL TAGLINE ============ */
+  .creed{
+    padding:clamp(120px,18vh,200px) 24px;
+    text-align:center;
+    position:relative;
+  }
+  .creed__line{
+    font-size:clamp(26px,4.4vw,52px);
+    font-weight:500;
+    line-height:1.28;
+    letter-spacing:0.005em;
+    color:var(--white);
+    max-width:18ch;
+    margin:0 auto;
+    text-wrap:balance;
+  }
+  .creed__line .dim{color:rgba(244,241,234,0.45);}
+  .creed__mark{display:block;width:34px;height:1px;background:var(--red);margin:46px auto 0;opacity:0.8;}
+
+  /* ============ ROSTER ============ */
+  .roster{padding:0 clamp(18px,4vw,56px) clamp(80px,12vh,140px);max-width:1240px;margin:0 auto;}
+  .roster__head{
+    display:flex;align-items:center;gap:22px;
+    margin:0 auto 38px;max-width:1240px;
+  }
+  .roster__head .lbl{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:0.42em;
+    text-transform:uppercase;color:rgba(244,241,234,0.5);white-space:nowrap;
+  }
+  .roster__head .ln{flex:1;height:1px;background:var(--line);}
+  .roster__head .ct{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:0.3em;color:rgba(244,241,234,0.3);}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:clamp(10px,1.1vw,16px);
+  }
+
+  .card{
+    position:relative;
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
+  }
+  .card__frame{
+    position:relative;
+    aspect-ratio:4/5;
+    overflow:hidden;
+    background:var(--ink);
+    isolation:isolate;
+  }
+  .card__bg{position:absolute;inset:0;z-index:0;transition:transform 0.7s cubic-bezier(.2,.7,.2,1),filter 0.5s ease;}
+  .card__bg::after{content:"";position:absolute;inset:0;background-image:var(--grain);background-size:150px;opacity:0.07;mix-blend-mode:soft-light;}
+  .card__vig{position:absolute;inset:0;z-index:1;background:radial-gradient(120% 100% at 50% 30%,transparent 38%,rgba(8,8,8,0.55) 100%),linear-gradient(180deg,rgba(8,8,8,0.45) 0%,transparent 30%,transparent 62%,rgba(8,8,8,0.92) 100%);pointer-events:none;}
+  /* droppable image slot sits between bg and logo */
+  .card image-slot{position:absolute;inset:0;z-index:2;width:100%;height:100%;}
+  image-slot::part(ring){display:none;}
+  image-slot::part(empty){display:none;}
+  image-slot::part(frame){background:transparent;}
+  .card__logo{
+    position:absolute;inset:0;z-index:3;
+    display:flex;align-items:center;justify-content:center;
+    padding:16% 14%;pointer-events:none;
+  }
+  .card__logo img{
+    max-width:100%;max-height:100%;width:auto;height:auto;
+    object-fit:contain;
+    filter:drop-shadow(0 6px 24px rgba(0,0,0,0.7));
+    transition:transform 0.7s cubic-bezier(.2,.7,.2,1);
+  }
+  .logo--gold img{}
+  .logo--white img{filter:brightness(0) invert(1) drop-shadow(0 6px 22px rgba(0,0,0,0.8));}
+
+  .card__badge{
+    position:absolute;top:14px;left:14px;z-index:4;
+    font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:0.28em;
+    text-transform:uppercase;color:rgba(244,241,234,0.72);
+    padding:5px 9px;border:1px solid rgba(244,241,234,0.22);
+    background:rgba(8,8,8,0.4);backdrop-filter:blur(2px);
+  }
+
+  .card__meta{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    padding:14px 2px 0;
+  }
+  .card__genre{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:0.22em;
+    text-transform:uppercase;color:rgba(244,241,234,0.62);
+  }
+  .card__idx{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:0.2em;color:rgba(244,241,234,0.26);}
+  .card__feat{
+    display:block;margin-top:6px;
+    font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:0.12em;
+    color:rgba(139,26,26,0.85);
+    animation:glitch 5s steps(1) infinite;
+  }
+  @keyframes glitch{
+    0%,92%,100%{opacity:0.78;transform:translateX(0);}
+    93%{opacity:0.4;transform:translateX(-1.5px);}
+    94%{opacity:0.95;transform:translateX(1.5px);color:#c23a3a;}
+    95%{opacity:0.5;transform:translateX(-1px);}
+    96%{opacity:0.85;transform:translateX(0);color:rgba(139,26,26,0.85);}
+  }
+
+  /* hover (interactive cards only) */
+  .card--int .card__frame::before{
+    content:"";position:absolute;inset:0;z-index:5;pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(244,241,234,0);
+    transition:box-shadow 0.5s ease;
+  }
+  .card--int:hover{z-index:6;}
+  .card--int:hover .card__bg{transform:scale(1.05);filter:brightness(1.18) saturate(1.05);}
+  .card--int:hover image-slot{filter:brightness(1.16);}
+  .card--int:hover .card__logo img{transform:scale(1.03);}
+  .card--int:hover .card__frame::before{box-shadow:inset 0 0 0 1px rgba(244,241,234,0.14);}
+  .card--int:hover .card__genre{color:rgba(244,241,234,0.92);}
+  .card--int{transition:transform 0.55s cubic-bezier(.2,.7,.2,1);}
+  .card--int:hover{transform:scale(1.03);}
+
+  /* dimmed easter egg */
+  .card--dim{opacity:0.4;cursor:default;}
+  .card--dim .card__meta{opacity:0.8;}
+
+  /* TBA */
+  .card--tba .card__frame{display:flex;align-items:center;justify-content:center;}
+  .card--tba .soon{
+    position:relative;z-index:3;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:0.4em;
+    text-transform:uppercase;color:rgba(244,241,234,0.22);
+  }
+  .card--tba .card__genre{color:rgba(244,241,234,0.22);}
+
+  /* ===== cinematic backgrounds ===== */
+  .bg-seraphveil{background:
+    radial-gradient(80% 70% at 50% 14%, rgba(168,140,96,0.42) 0%, rgba(120,72,30,0.18) 32%, transparent 62%),
+    radial-gradient(120% 120% at 50% 120%, rgba(60,20,12,0.5) 0%, transparent 60%),
+    linear-gradient(180deg,#161009 0%,#0a0705 100%);}
+  .bg-obsidian{background:
+    radial-gradient(90% 80% at 70% 18%, rgba(108,128,140,0.28) 0%, transparent 55%),
+    radial-gradient(70% 90% at 22% 90%, rgba(30,44,52,0.55) 0%, transparent 60%),
+    linear-gradient(180deg,#0c1114 0%,#070a0b 100%);}
+  .bg-credo{background:
+    radial-gradient(95% 80% at 50% 118%, rgba(139,26,26,0.6) 0%, rgba(90,16,16,0.25) 38%, transparent 64%),
+    radial-gradient(60% 60% at 50% 8%, rgba(120,100,90,0.16) 0%, transparent 60%),
+    linear-gradient(180deg,#120a0a 0%,#080505 100%);}
+  .bg-btb{background:
+    radial-gradient(85% 75% at 30% 22%, rgba(120,92,52,0.3) 0%, transparent 56%),
+    radial-gradient(90% 90% at 70% 110%, rgba(40,28,14,0.6) 0%, transparent 60%),
+    linear-gradient(180deg,#100c07 0%,#080604 100%);}
+  .bg-slick{background:
+    radial-gradient(60% 40% at 50% 70%, rgba(150,120,70,0.28) 0%, transparent 55%),
+    radial-gradient(120% 80% at 50% 8%, rgba(28,40,66,0.55) 0%, transparent 55%),
+    linear-gradient(180deg,#0a0f1a 0%,#080a10 45%,#0b0908 100%);}
+  .bg-kvn{background:
+    radial-gradient(80% 70% at 50% 30%, rgba(120,60,120,0.4) 0%, transparent 58%),
+    radial-gradient(60% 60% at 50% 100%, rgba(40,30,80,0.5) 0%, transparent 60%),
+    linear-gradient(180deg,#100a14 0%,#08060a 100%);}
+  .bg-char1{background:radial-gradient(120% 100% at 30% 20%,rgba(40,40,44,0.5) 0%,transparent 60%),linear-gradient(180deg,#0c0c0d 0%,#070707 100%);}
+  .bg-char2{background:radial-gradient(120% 100% at 70% 80%,rgba(44,40,38,0.5) 0%,transparent 60%),linear-gradient(180deg,#0d0c0b 0%,#070706 100%);}
+  .bg-char3{background:radial-gradient(120% 100% at 50% 50%,rgba(38,40,44,0.45) 0%,transparent 62%),linear-gradient(180deg,#0b0c0d 0%,#070708 100%);}
+
+  /* slick nameplate (no logo) */
+  .card__name{
+    position:absolute;z-index:3;left:0;right:0;bottom:0;
+    padding:0 8% 12%;text-align:center;pointer-events:none;
+  }
+  .card__name .nm{
+    font-family:"Cinzel",serif;font-weight:600;
+    font-size:clamp(15px,1.5vw,21px);letter-spacing:0.06em;
+    color:var(--white);line-height:1.2;
+    text-shadow:0 4px 24px rgba(0,0,0,0.8);
+  }
+  .card__name .sub{
+    display:block;margin-top:8px;
+    font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:0.3em;
+    text-transform:uppercase;color:rgba(244,241,234,0.55);
+  }
+
+  /* ============ FOOTER ============ */
+  footer{
+    border-top:1px solid var(--line);
+    padding:clamp(48px,8vh,84px) 24px clamp(40px,6vh,60px);
+    text-align:center;
+  }
+  .foot__mark{width:60px;height:auto;opacity:0.5;margin:0 auto 26px;display:block;}
+  .foot__creed{
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:0.34em;
+    text-transform:uppercase;color:rgba(244,241,234,0.4);margin-bottom:30px;
+  }
+  .foot__legal{
+    font-family:"IBM Plex Mono",monospace;font-size:9px;line-height:1.9;letter-spacing:0.05em;
+    color:rgba(244,241,234,0.14);
+    max-width:62ch;margin:0 auto;
+  }
+  .foot__legal .b{color:rgba(244,241,234,0.22);}
+
+  @media (max-width:720px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .hero__kicker{letter-spacing:0.32em;}
+  }
+  @media (max-width:460px){
+    .grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;}
+    html{scroll-behavior:auto;}
+    /* reveal cards immediately for reduced-motion users */
+    .card{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero" data-screen-label="Hero">
+    <div class="hero__bg"></div>
+    <div class="hero__shade"></div>
+    <div class="hero__grain"></div>
+    <div class="hero__inner">
+      <div class="hero__kicker">Est. 1932 · The Crossroads</div>
+      <img class="hero__logo" src="assets/crosstrax.png" alt="Crosstrax Entertainment">
+      <div class="hero__rule"></div>
+      <p class="hero__tag">One night of praise. An eternity of echoes.</p>
+    </div>
+    <div class="hero__scroll mono">Scroll</div>
+  </header>
+
+  <!-- ============ LABEL CREED ============ -->
+  <section class="creed" data-screen-label="Creed">
+    <p class="creed__line">Soul-infused audio products. <span class="dim">Metaphysically hazardous entertainment.</span></p>
+    <span class="creed__mark"></span>
+  </section>
+
+  <!-- ============ ROSTER ============ -->
+  <section class="roster" data-screen-label="Roster">
+    <div class="roster__head">
+      <span class="lbl">The Roster</span>
+      <span class="ln"></span>
+      <span class="ct">IX&nbsp;SOULS&nbsp;BOUND</span>
+    </div>
+
+    <div class="grid">
+
+      <!-- 01 Seraphveil -->
+      <a class="card card--int" href="Seraphveil.html" data-screen-label="Seraphveil">
+        <div class="card__frame">
+          <div class="card__bg bg-seraphveil"></div>
+          <image-slot id="ct-seraphveil" fit="cover" placeholder="Seraphveil still"></image-slot>
+          <div class="card__vig"></div>
+          <div class="card__logo logo--gold"><img src="assets/seraphveil.png" alt="Seraphveil"></div>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">Gothic Symphonic Metal</span>
+          <span class="card__idx">01</span>
+        </div>
+      </a>
+
+      <!-- 02 Obsidian Serpents -->
+      <a class="card card--int" data-screen-label="Obsidian Serpents">
+        <div class="card__frame">
+          <div class="card__bg bg-obsidian"></div>
+          <image-slot id="ct-obsidian" fit="cover" placeholder="Obsidian Serpents still"></image-slot>
+          <div class="card__vig"></div>
+          <span class="card__badge mono">Select Releases</span>
+          <div class="card__logo logo--gold"><img src="assets/obsidian.png" alt="Obsidian Serpents"></div>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">Dark Metal</span>
+          <span class="card__idx">02</span>
+        </div>
+      </a>
+
+      <!-- 03 Credo Mortem -->
+      <a class="card card--int" data-screen-label="Credo Mortem">
+        <div class="card__frame">
+          <div class="card__bg bg-credo"></div>
+          <image-slot id="ct-credo" fit="cover" placeholder="Credo Mortem still"></image-slot>
+          <div class="card__vig"></div>
+          <div class="card__logo logo--white"><img src="assets/credo.png" alt="Credo Mortem"></div>
+        </div>
+        <div class="card__meta">
+          <div>
+            <span class="card__genre">Blackened Deathcore</span>
+            <span class="card__feat">★ feat. Nimothy™ (uninvited)</span>
+          </div>
+          <span class="card__idx">03</span>
+        </div>
+      </a>
+
+      <!-- 04 Black Thumb Baptists -->
+      <a class="card card--int" data-screen-label="Black Thumb Baptists">
+        <div class="card__frame">
+          <div class="card__bg bg-btb"></div>
+          <image-slot id="ct-btb" fit="cover" placeholder="Black Thumb Baptists still"></image-slot>
+          <div class="card__vig"></div>
+          <div class="card__logo logo--white"><img src="assets/btb.png" alt="Black Thumb Baptists"></div>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">Southern Metal</span>
+          <span class="card__idx">04</span>
+        </div>
+      </a>
+
+      <!-- 05 Varnum "Slick" Cross -->
+      <a class="card card--int" data-screen-label="Varnum Cross">
+        <div class="card__frame">
+          <div class="card__bg bg-slick"></div>
+          <image-slot id="ct-slick" fit="cover" placeholder="Crossroads night scene"></image-slot>
+          <div class="card__vig"></div>
+          <div class="card__name">
+            <span class="nm">Varnum &ldquo;Slick&rdquo; Cross&trade;</span>
+            <span class="sub">Founder</span>
+          </div>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">Blues</span>
+          <span class="card__idx">05</span>
+        </div>
+      </a>
+
+      <!-- 06 KVN (easter egg) -->
+      <div class="card card--dim" data-screen-label="KVN" aria-hidden="true">
+        <div class="card__frame">
+          <div class="card__bg bg-kvn"></div>
+          <image-slot id="ct-kvn" fit="cover" placeholder="KVN — goat DJ silhouette"></image-slot>
+          <div class="card__vig"></div>
+          <div class="card__name">
+            <span class="nm" style="font-size:clamp(20px,2vw,28px);letter-spacing:0.14em;">KVN</span>
+          </div>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">EDM</span>
+          <span class="card__idx">06</span>
+        </div>
+      </div>
+
+      <!-- 07 TBA -->
+      <div class="card card--tba" data-screen-label="TBA 07">
+        <div class="card__frame">
+          <div class="card__bg bg-char1"></div>
+          <div class="card__vig"></div>
+          <span class="soon">Coming Soon</span>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">[ TBA ]</span>
+          <span class="card__idx">07</span>
+        </div>
+      </div>
+
+      <!-- 08 TBA -->
+      <div class="card card--tba" data-screen-label="TBA 08">
+        <div class="card__frame">
+          <div class="card__bg bg-char2"></div>
+          <div class="card__vig"></div>
+          <span class="soon">Coming Soon</span>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">[ TBA ]</span>
+          <span class="card__idx">08</span>
+        </div>
+      </div>
+
+      <!-- 09 TBA -->
+      <div class="card card--tba" data-screen-label="TBA 09">
+        <div class="card__frame">
+          <div class="card__bg bg-char3"></div>
+          <div class="card__vig"></div>
+          <span class="soon">Coming Soon</span>
+        </div>
+        <div class="card__meta">
+          <span class="card__genre">[ TBA ]</span>
+          <span class="card__idx">09</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer data-screen-label="Footer">
+    <img class="foot__mark" src="assets/crosstrax.png" alt="Crosstrax Entertainment">
+    <div class="foot__creed">Crosstrax Entertainment&trade;</div>
+    <p class="foot__legal">
+      &copy; Cross Trax Entertainment&trade;. <span class="b">All contracts are binding across all dimensions and states of existence.</span> The Slippery When Bound clause applies. Cross Trax Entertainment&trade; denies all involvement.
+    </p>
+  </footer>
+
+  <script>
+  /* Roster card stagger fade-in via IntersectionObserver */
+  (function(){
+    if(!('IntersectionObserver' in window)){
+      document.querySelectorAll('.card').forEach(function(c){c.style.opacity='1';c.style.transform='none';});
+      return;
+    }
+    var pending=[], batchTimer=null;
+    var obs=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ pending.push(e.target); obs.unobserve(e.target); }
+      });
+      clearTimeout(batchTimer);
+      batchTimer=setTimeout(function(){
+        pending.forEach(function(el,i){
+          setTimeout(function(){
+            el.style.transition='opacity 0.55s ease, transform 0.55s ease';
+            el.style.opacity='1';
+            el.style.transform='translateY(0)';
+          }, i*80);
+        });
+        pending=[];
+      }, 30);
+    },{threshold:0.08});
+    document.querySelectorAll('.card').forEach(function(c){ obs.observe(c); });
+  })();
+  </script>
+</body>
+</html>
