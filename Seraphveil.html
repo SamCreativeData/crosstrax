@@ -363,6 +363,30 @@
     .info{overflow:visible;}
     .tracks{overflow:visible;}
   }
+
+  /* ===== SUMMONING : assemble on first commit, lift on album change ===== */
+  .deck{will-change:transform;}
+  @media (prefers-reduced-motion:no-preference){
+  .deck.assemble{animation:deckAssemble 1100ms cubic-bezier(.2,.7,.15,1) both;}
+  @keyframes deckAssemble{
+  0%  {transform:scale(0.62) rotate(-9deg);opacity:0;}
+  62% {transform:scale(1.012) rotate(1.2deg);opacity:1;}
+  70% {transform:scale(0.996) rotate(-0.6deg);}
+  72% {transform:scale(1.006) rotate(0.4deg);}
+  100%{transform:scale(1) rotate(0deg);opacity:1;}
+  }
+  .deck.lift{animation:deckLift 460ms cubic-bezier(.3,.7,.2,1) both;}
+  @keyframes deckLift{
+  0%  {transform:translateY(0) scale(1);}
+  42% {transform:translateY(-13px) scale(1.03);}
+  100%{transform:translateY(0) scale(1);}
+  }
+  }
+  @media (prefers-reduced-motion:reduce){
+  .deck.assemble{animation:deckFade 400ms ease both;}
+  .deck.lift{animation:none;}
+  @keyframes deckFade{from{opacity:0;}to{opacity:1;}}
+  }
 </style>
 </head>
 <body>
@@ -609,12 +633,14 @@
   /* ---------- transport ---------- */
   function select(album,idx){
     const changed = (album!==curAlbum || idx!==curTrack);
+    const _prevAlbum=curAlbum, _wasPlaying=playing;
     curAlbum=album; curTrack=idx; viewAlbum=album;
     duration=ALBUMS[album].tracks[idx].d;
     if(changed) elapsed=0;
     renderArms(); renderTrackList(); renderNow(); renderProgress();
     play();
     scheduleDrift();
+    if(_prevAlbum===null) summon("assemble"); else if(_wasPlaying&&album!==_prevAlbum) summon("lift");
   }
   function play(){
     if(curAlbum==null) select(viewAlbum,0);
@@ -714,6 +740,17 @@
     if(e.code==="Space"){e.preventDefault();toggle();}
     else if(e.code==="ArrowRight")next();
     else if(e.code==="ArrowLeft")prev();
+  });
+
+  /* ---------- summoning: assemble on first commit, lift on album change ---------- */
+  function summon(kind){ // kind = "assemble" | "lift"
+    deck.classList.remove("assemble","lift");
+    void deck.offsetWidth; // force reflow so the animation re-triggers
+    deck.classList.add(kind);
+  }
+  deck.addEventListener("animationend",e=>{
+    if(e.animationName==="deckAssemble"||e.animationName==="deckLift"||e.animationName==="deckFade")
+      deck.classList.remove("assemble","lift");
   });
 
   /* ---------- init ---------- */
